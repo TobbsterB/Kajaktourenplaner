@@ -1,757 +1,649 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kajak Tourenplaner 2027</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        kayak: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Custom Scrollbar for Timeline horizontal scroll */
-        .timeline-scroll::-webkit-scrollbar {
-            height: 10px;
-        }
-        .timeline-scroll::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 5px;
-        }
-        .timeline-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 5px;
-        }
-        .timeline-scroll::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kajak-Tourenplaner 2027</title>
+  <style>
+    :root {
+      --bg-main: #f4f7f6;
+      --card-bg: #ffffff;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+
+      /* Status-Farben */
+      --yes: #22c55e;
+      --yes-bg: #dcfce7;
+      --maybe: #eab308;
+      --maybe-bg: #fef9c3;
+      --no: #ef4444;
+      --no-bg: #fee2e2;
+
+      /* Highlights */
+      --weekend-bg: #f8fafc;
+      --holiday-bg: #f0fdf4;
+      --holiday-border: #bbf7d0;
+      --holiday-text: #166534;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .user-section {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 18px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .link-box {
+      background: #eff6ff;
+      border: 1px dashed #93c5fd;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .link-box input {
+      background: transparent;
+      border: none;
+      color: #1d4ed8;
+      font-weight: bold;
+      width: 250px;
+      cursor: pointer;
+    }
+
+    /* Filters */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .month-filter {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .month-btn {
+      padding: 6px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .month-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Table Timeline */
+    .timeline-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      position: relative;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 800px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      text-align: center;
+      padding: 8px 4px;
+      min-width: 44px;
+    }
+
+    th.user-col, td.user-col {
+      position: sticky;
+      left: 0;
+      background: var(--card-bg);
+      z-index: 2;
+      min-width: 140px;
+      text-align: left;
+      padding-left: 12px;
+      font-weight: bold;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+
+    th.date-header {
+      font-size: 0.75rem;
+      font-weight: normal;
+    }
+
+    th.date-header .day-name {
+      font-weight: bold;
+      display: block;
+    }
+
+    th.date-header .holiday-name {
+      font-size: 0.65rem;
+      color: var(--holiday-text);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 40px;
+    }
+
+    /* Row / Cell States */
+    tr.weekend, th.weekend {
+      background-color: var(--weekend-bg);
+    }
+
+    tr.holiday, th.holiday {
+      background-color: var(--holiday-bg) !important;
+      border-color: var(--holiday-border);
+    }
+
+    .cell-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      transition: transform 0.1s;
+    }
+
+    .cell-btn:active {
+      transform: scale(0.9);
+    }
+
+    .status-yes { background: var(--yes-bg); color: var(--yes); font-weight: bold; }
+    .status-maybe { background: var(--maybe-bg); color: var(--maybe); font-weight: bold; }
+    .status-no { background: var(--no-bg); color: var(--no); font-weight: bold; }
+
+    /* Summary Row */
+    tr.summary-row {
+      background: #f8fafc;
+      font-weight: bold;
+    }
+
+    .count-badge {
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    .count-high {
+      background: var(--yes-bg);
+      color: var(--yes);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .data-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      background: #64748b;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body>
 
-    <!-- Header / Navbar -->
-    <header class="bg-gradient-to-r from-kayak-700 via-kayak-600 to-teal-600 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
-                    <i data-lucide="waves" class="w-8 h-8 text-cyan-200"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Kajak Tourenplaner 2027</h1>
-                    <p class="text-xs text-cyan-100">Finde gemeinsam mit deiner Crew die besten Paddeltage!</p>
-                </div>
-            </div>
-
-            <!-- Profile / Actions Header -->
-            <div id="userHeaderStatus" class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <!-- Will be dynamically filled by JS -->
-            </div>
-        </div>
+  <div class="container">
+    <header>
+      <h1>🚣‍♂️ Kajak-Tourenplaner 2027</h1>
+      <p>Plane gemeinsame Paddeltage für das Jahr 2027 (inkl. Feiertage Bayern)</p>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <!-- User Management Section -->
+    <div class="user-section">
+      <div class="user-controls">
+        <input type="text" id="usernameInput" placeholder="Dein Name..." />
+        <button id="setUserBtn">Als Nutzer eintragen / wechseln</button>
+      </div>
 
-        <!-- User Link Banner (If user is logged in/selected) -->
-        <div id="personalLinkBanner" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-amber-100 rounded-lg text-amber-700">
-                    <i data-lucide="link" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-amber-900">Dein persönlicher Zugangs-Link</p>
-                    <p class="text-xs text-amber-700">Speichere diesen Link als Lesezeichen, um deine Verfügbarkeiten später wieder zu bearbeiten:</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 w-full md:w-auto">
-                <input id="personalUrlInput" type="text" readonly class="bg-white border border-amber-300 text-xs text-slate-600 rounded-lg p-2 w-full md:w-64 select-all">
-                <button onclick="copyPersonalLink()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 transition shadow-sm whitespace-nowrap">
-                    <i data-lucide="copy" class="w-4 h-4"></i> Link kopieren
-                </button>
-            </div>
-        </div>
-
-        <!-- Controls & Filter Toolbar -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <!-- Left side: Month filter / Jump to month -->
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Monat:</span>
-                <div id="monthButtons" class="flex flex-wrap gap-1">
-                    <!-- Month filter buttons generated by JS -->
-                </div>
-            </div>
-
-            <!-- Right side: Quick stats & Actions -->
-            <div class="flex items-center justify-between md:justify-end gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                <button onclick="openNewUserModal()" class="bg-kayak-600 hover:bg-kayak-700 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition shadow-md hover:shadow-lg">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
-                    <span>Person hinzufügen</span>
-                </button>
-
-                <div class="relative group">
-                    <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition" title="Daten Option">
-                        <i data-lucide="more-vertical" class="w-5 h-5"></i>
-                    </button>
-                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 hidden group-hover:block z-50">
-                        <button onclick="exportData()" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-                            <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Daten sichern (JSON)
-                        </button>
-                        <button onclick="importData()" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-                            <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Daten laden (JSON)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="flex flex-wrap items-center justify-between gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-slate-200/60 text-xs">
-            <div class="flex items-center gap-4 flex-wrap">
-                <span class="font-semibold text-slate-600">Legende:</span>
-                <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center font-bold text-xs">✓</span> Zeit (Grün)</span>
-                <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-full bg-amber-400 text-white flex items-center justify-center font-bold text-xs">○</span> Vielleicht (Gelb)</span>
-                <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-md bg-rose-500 text-white flex items-center justify-center font-bold text-xs">✕</span> Keine Zeit (Rot)</span>
-                <span class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-md bg-slate-100 border border-slate-200"></span> Keine Angabe</span>
-            </div>
-            <div class="text-slate-500 italic">
-                Tipp: Klicke auf deine Zeile, um den Status pro Tag schnell durchzuwechseln.
-            </div>
-        </div>
-
-        <!-- Main Interactive Timeline Container -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div id="timelineScrollContainer" class="overflow-x-auto timeline-scroll">
-                <table class="w-full border-collapse text-left">
-                    <thead>
-                        <!-- Month Header Row -->
-                        <tr id="timelineMonthHeader" class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200">
-                            <!-- JS populated -->
-                        </tr>
-                        <!-- Day/Date Header Row -->
-                        <tr id="timelineDayHeader" class="bg-slate-50 text-slate-500 text-[10px] font-semibold border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                            <!-- JS populated -->
-                        </tr>
-                    </thead>
-                    <tbody id="timelineBody" class="divide-y divide-slate-100 text-sm">
-                        <!-- JS populated user rows -->
-                    </tbody>
-                    <tfoot>
-                        <!-- Best Days Summary Row -->
-                        <tr id="timelineSummaryRow" class="bg-slate-50 font-semibold border-t-2 border-slate-200 text-xs">
-                            <!-- JS populated summary -->
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden py-16 text-center">
-                <div class="w-16 h-16 bg-kayak-50 text-kayak-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="users" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-base font-semibold text-slate-800 mb-1">Noch keine Paddler eingetragen</h3>
-                <p class="text-xs text-slate-500 max-w-sm mx-auto mb-4">Trage dich oder deine Freunde ein, um mit der Terminabstimmung für 2027 zu starten.</p>
-                <button onclick="openNewUserModal()" class="bg-kayak-600 hover:bg-kayak-700 text-white px-4 py-2 rounded-xl text-xs font-medium inline-flex items-center gap-2 transition">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i> Ersten Eintrag erstellen
-                </button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modal: Add New User -->
-    <div id="newUserModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-kayak-600"></i>
-                    <span>Neuen Paddler anlegen</span>
-                </h3>
-                <button onclick="closeNewUserModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <form onsubmit="handleCreateUser(event)" class="space-y-4">
-                <div>
-                    <label for="userNameInput" class="block text-xs font-semibold text-slate-600 mb-1">Name oder Spitzname *</label>
-                    <input type="text" id="userNameInput" required placeholder="z. B. Max Mustermann" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-kayak-500 focus:border-transparent">
-                </div>
-
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600">
-                    <p class="font-medium text-slate-700 mb-1">Hinweis zur Bearbeitung:</p>
-                    <p>Nach Erstellung erhältst du einen eindeutigen Link. Nutze diesen Link, um deine Termine jederzeit anzupassen.</p>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeNewUserModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">Abbrechen</button>
-                    <button type="submit" class="px-4 py-2 bg-kayak-600 hover:bg-kayak-700 text-white rounded-xl text-xs font-medium shadow-md">Paddler erstellen</button>
-                </div>
-            </form>
-        </div>
+      <div class="link-box" id="linkBox" style="display: none;">
+        <span>Dein Bearbeitungs-Link:</span>
+        <input type="text" id="userLink" readonly onclick="this.select()" />
+        <button onclick="copyLink()">Kopieren</button>
+      </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-xs">
-        <i id="toastIcon" data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-        <span id="toastMessage">Aktion erfolgreich</span>
+    <!-- Filter Bar -->
+    <div class="controls-bar">
+      <div class="month-filter" id="monthFilter">
+        <!-- Month buttons will be rendered via JS -->
+      </div>
     </div>
 
-    <script>
-        // --- CONSTANTS & STATE ---
-        const YEAR = 2027;
-        const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-        const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+    <!-- Main Timeline Table -->
+    <div class="timeline-container">
+      <table id="plannerTable">
+        <thead>
+          <tr id="headerRow">
+            <th class="user-col">Name</th>
+            <!-- Days header generated via JS -->
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Rows generated via JS -->
+        </tbody>
+        <tfoot>
+          <tr id="summaryRow" class="summary-row">
+            <td class="user-col">Gesamt (Ja)</td>
+            <!-- Summary cells via JS -->
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Data Backup Actions -->
+    <div class="data-actions">
+      <button class="btn-secondary" onclick="exportData()">Daten Exportieren (JSON)</button>
+      <button class="btn-secondary" onclick="importData()">Daten Importieren</button>
+    </div>
+  </div>
+
+  <script>
+    // Bavarian Holidays 2027
+    const HOLIDAYS_BAYERN_2027 = {
+      "2027-01-01": "Neujahr",
+      "2027-01-06": "Hl. 3 Könige",
+      "2027-03-26": "Karfreitag",
+      "2027-03-29": "Ostermontag",
+      "2027-05-01": "Tag der Arbeit",
+      "2027-05-06": "Chr. Himmelfahrt",
+      "2027-05-17": "Pfingstmontag",
+      "2027-05-27": "Fronleichnam",
+      "2027-08-15": "Mariä Himmelfahrt",
+      "2027-10-03": "Tag d. Dt. Einheit",
+      "2027-11-01": "Allerheiligen",
+      "2027-12-25": "1. Weihnachtstag",
+      "2027-12-26": "2. Weihnachtstag"
+    };
+
+    const MONTH_NAMES = [
+      "Januar", "Februar", "März", "April", "Mai", "Juni", 
+      "Juli", "August", "September", "Oktober", "November", "Dezember"
+    ];
+
+    const DAYS_SHORT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+    // App State
+    let state = {
+      users: {}, // { userId: { name: string, availability: { "YYYY-MM-DD": "yes"|"maybe"|"no" } } }
+      currentUserId: null,
+      selectedMonth: 0 // 0-11, or 'ALL'
+    };
+
+    // Generate Calendar Days for 2027
+    const days2027 = [];
+    const startDate = new Date(2027, 0, 1);
+    const endDate = new Date(2027, 11, 31);
+
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const dayOfWeek = d.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const holidayName = HOLIDAYS_BAYERN_2027[dateStr] || null;
+
+      days2027.push({
+        dateStr,
+        dayNum: d.getDate(),
+        monthIndex: d.getMonth(),
+        dayShort: DAYS_SHORT[dayOfWeek],
+        isWeekend,
+        holidayName
+      });
+    }
+
+    // Load Local Storage
+    function loadStorage() {
+      const savedData = localStorage.getItem('kajak_planner_2027');
+      if (savedData) {
+        try {
+          state.users = JSON.parse(savedData);
+        } catch (e) {
+          console.error("Fehler beim Laden", e);
+        }
+      }
+    }
+
+    // Save Local Storage
+    function saveStorage() {
+      localStorage.setItem('kajak_planner_2027', JSON.stringify(state.users));
+      renderTable();
+    }
+
+    // URL Token Handling
+    function handleUrlUser() {
+      const params = new URLSearchParams(window.location.search);
+      const userIdParam = params.get('user');
+
+      if (userIdParam) {
+        if (!state.users[userIdParam]) {
+          // If user id doesn't exist, prompt for name or set default
+          state.users[userIdParam] = { name: "Paddler " + userIdParam.slice(-4), availability: {} };
+          saveStorage();
+        }
+        state.currentUserId = userIdParam;
+        document.getElementById('usernameInput').value = state.users[userIdParam].name;
+        updateLinkBox();
+      }
+    }
+
+    function setCurrentUser(name) {
+      if (!name.trim()) return;
+      
+      let userId = state.currentUserId;
+      if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        state.currentUserId = userId;
+      }
+      
+      if (!state.users[userId]) {
+        state.users[userId] = { name: name.trim(), availability: {} };
+      } else {
+        state.users[userId].name = name.trim();
+      }
+
+      // Update URL without reload
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('user', userId);
+      window.history.pushState({}, '', newUrl);
+
+      saveStorage();
+      updateLinkBox();
+    }
+
+    function updateLinkBox() {
+      if (state.currentUserId) {
+        const linkBox = document.getElementById('linkBox');
+        const userLinkInput = document.getElementById('userLink');
+        linkBox.style.display = 'flex';
+        userLinkInput.value = window.location.href;
+      }
+    }
+
+    function copyLink() {
+      const userLinkInput = document.getElementById('userLink');
+      userLinkInput.select();
+      navigator.clipboard.writeText(userLinkInput.value);
+      alert("Bearbeitungs-Link kopiert!");
+    }
+
+    // Toggle Availability Status: none -> yes -> maybe -> no -> none
+    function toggleStatus(userId, dateStr) {
+      if (userId !== state.currentUserId) {
+        alert("Du kannst nur deine eigenen Zeiten ändern. Bitte nutze deinen eigenen Bearbeitungs-Link oder trage dich oben als Nutzer ein.");
+        return;
+      }
+
+      const currentStatus = state.users[userId].availability[dateStr];
+      let nextStatus = null;
+
+      if (!currentStatus) nextStatus = 'yes';
+      else if (currentStatus === 'yes') nextStatus = 'maybe';
+      else if (currentStatus === 'maybe') nextStatus = 'no';
+      else nextStatus = null;
+
+      if (nextStatus) {
+        state.users[userId].availability[dateStr] = nextStatus;
+      } else {
+        delete state.users[userId].availability[dateStr];
+      }
+
+      saveStorage();
+    }
+
+    // Render Filters
+    function renderFilters() {
+      const monthFilterContainer = document.getElementById('monthFilter');
+      monthFilterContainer.innerHTML = '';
+
+      const allBtn = document.createElement('button');
+      allBtn.className = `month-btn ${state.selectedMonth === 'ALL' ? 'active' : ''}`;
+      allBtn.textContent = 'Alle Monate';
+      allBtn.onclick = () => { state.selectedMonth = 'ALL'; renderFilters(); renderTable(); };
+      monthFilterContainer.appendChild(allBtn);
+
+      MONTH_NAMES.forEach((month, index) => {
+        const btn = document.createElement('button');
+        btn.className = `month-btn ${state.selectedMonth === index ? 'active' : ''}`;
+        btn.textContent = month;
+        btn.onclick = () => { state.selectedMonth = index; renderFilters(); renderTable(); };
+        monthFilterContainer.appendChild(btn);
+      });
+    }
+
+    // Render Table
+    function renderTable() {
+      const headerRow = document.getElementById('headerRow');
+      const tableBody = document.getElementById('tableBody');
+      const summaryRow = document.getElementById('summaryRow');
+
+      // Clear existing columns except user col
+      headerRow.innerHTML = '<th class="user-col">Name</th>';
+      summaryRow.innerHTML = '<td class="user-col">Gesamt (Ja)</td>';
+      tableBody.innerHTML = '';
+
+      // Filter Days
+      const visibleDays = days2027.filter(d => state.selectedMonth === 'ALL' || d.monthIndex === state.selectedMonth);
+
+      // Render Header
+      visibleDays.forEach(day => {
+        const th = document.createElement('th');
+        th.className = 'date-header';
+        if (day.isWeekend) th.classList.add('weekend');
+        if (day.holidayName) th.classList.add('holiday');
+
+        let content = `<span class="day-name">${day.dayShort}</span>${day.dayNum}.${day.monthIndex + 1}.`;
+        if (day.holidayName) {
+          content += `<span class="holiday-name" title="${day.holidayName}">${day.holidayName}</span>`;
+        }
+
+        th.innerHTML = content;
+        headerRow.appendChild(th);
+      });
+
+      // Render User Rows
+      Object.keys(state.users).forEach(userId => {
+        const user = state.users[userId];
+        const tr = document.createElement('tr');
         
-        // Status definitions: 0 = unset, 1 = yes (green check), 2 = maybe (yellow circle), 3 = no (red x)
-        const STATUS = {
-            NONE: 0,
-            YES: 1,
-            MAYBE: 2,
-            NO: 3
+        const nameTd = document.createElement('td');
+        nameTd.className = 'user-col';
+        nameTd.textContent = user.name + (userId === state.currentUserId ? ' (Du)' : '');
+        tr.appendChild(nameTd);
+
+        visibleDays.forEach(day => {
+          const td = document.createElement('td');
+          if (day.isWeekend) td.classList.add('weekend');
+          if (day.holidayName) td.classList.add('holiday');
+
+          const status = user.availability[day.dateStr];
+          const btn = document.createElement('button');
+          btn.className = 'cell-btn';
+
+          if (status === 'yes') {
+            btn.classList.add('status-yes');
+            btn.textContent = '✓';
+          } else if (status === 'maybe') {
+            btn.classList.add('status-maybe');
+            btn.textContent = '○';
+          } else if (status === 'no') {
+            btn.classList.add('status-no');
+            btn.textContent = '✕';
+          } else {
+            btn.textContent = '';
+          }
+
+          btn.onclick = () => toggleStatus(userId, day.dateStr);
+          td.appendChild(btn);
+          tr.appendChild(td);
+        });
+
+        tableBody.appendChild(tr);
+      });
+
+      // Render Summary Row
+      visibleDays.forEach(day => {
+        const td = document.createElement('td');
+        if (day.isWeekend) td.classList.add('weekend');
+        if (day.holidayName) td.classList.add('holiday');
+
+        let yesCount = 0;
+        Object.keys(state.users).forEach(userId => {
+          if (state.users[userId].availability[day.dateStr] === 'yes') {
+            yesCount++;
+          }
+        });
+
+        if (yesCount > 0) {
+          td.innerHTML = `<span class="count-badge ${yesCount >= 2 ? 'count-high' : ''}">${yesCount}</span>`;
+        }
+
+        summaryRow.appendChild(td);
+      });
+    }
+
+    // Export/Import JSON Data
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.users));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "kajak_planung_2027.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+          try {
+            const importedUsers = JSON.parse(readerEvent.target.result);
+            state.users = { ...state.users, ...importedUsers };
+            saveStorage();
+            alert("Daten erfolgreich importiert!");
+          } catch (err) {
+            alert("Fehler beim Importieren der Datei.");
+          }
         };
-
-        // LocalStorage Key
-        const STORAGE_KEY = 'kayak_planner_2027_data';
-
-        // App Data Structure
-        let appData = {
-            users: [] // Array of { id: string, name: string, statusMap: { "YYYY-MM-DD": number } }
-        };
-
-        let activeUserId = null; // ID of the user currently logged in / editing
-        let selectedMonth = 0; // 0 = All months, 1..12 = specific month
-
-        // All days of 2027 cache
-        const allDays2027 = [];
-
-        // --- INITIALIZATION ---
-        window.onload = function() {
-            generateDaysForYear(YEAR);
-            loadData();
-            checkUrlToken();
-            renderMonthButtons();
-            renderTimeline();
-            updateUserHeader();
-            lucide.createIcons();
-        };
-
-        // Generate date objects for all days of 2027
-        function generateDaysForYear(year) {
-            allDays2027.length = 0;
-            const startDate = new Date(year, 0, 1);
-            const endDate = new Date(year, 11, 31);
-            
-            let curr = new Date(startDate);
-            while (curr <= endDate) {
-                const month = curr.getMonth(); // 0-11
-                const dayOfMonth = curr.getDate();
-                const dayOfWeek = curr.getDay(); // 0-6
-                
-                // Format YYYY-MM-DD
-                const isoString = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayOfMonth).padStart(2, '0')}`;
-
-                allDays2027.push({
-                    date: new Date(curr),
-                    iso: isoString,
-                    month: month + 1, // 1-12
-                    dayOfMonth: dayOfMonth,
-                    dayOfWeek: dayOfWeek,
-                    isWeekend: dayOfWeek === 0 || dayOfWeek === 6
-                });
-
-                curr.setDate(curr.getDate() + 1);
-            }
-        }
-
-        // --- DATA STORAGE & SYNC ---
-        function loadData() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    appData = JSON.parse(stored);
-                } else {
-                    // Seed initial demo data for nice first view
-                    appData = {
-                        users: [
-                            {
-                                id: 'demo-1',
-                                name: 'Lukas (Beispiel)',
-                                statusMap: {
-                                    '2027-05-01': 1, '2027-05-02': 1, '2027-05-08': 2, '2027-05-09': 3
-                                }
-                            },
-                            {
-                                id: 'demo-2',
-                                name: 'Anna (Beispiel)',
-                                statusMap: {
-                                    '2027-05-01': 1, '2027-05-02': 2, '2027-05-08': 1, '2027-05-09': 1
-                                }
-                            }
-                        ]
-                    };
-                    saveData();
-                }
-            } catch (e) {
-                console.error("Error loading data", e);
-            }
-        }
-
-        function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-            } catch (e) {
-                console.error("Error saving data", e);
-            }
-        }
-
-        // --- URL USER TOKEN MANAGEMENT ---
-        function checkUrlToken() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userToken = urlParams.get('user');
-
-            if (userToken) {
-                const foundUser = appData.users.find(u => u.id === userToken);
-                if (foundUser) {
-                    activeUserId = foundUser.id;
-                    showToast(`Willkommen zurück, ${foundUser.name}!`);
-                }
-            }
-        }
-
-        function setPersonalUrl(userId) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('user', userId);
-            window.history.replaceState({}, '', url);
-
-            const input = document.getElementById('personalUrlInput');
-            if (input) input.value = url.href;
-
-            document.getElementById('personalLinkBanner').classList.remove('hidden');
-        }
-
-        function copyPersonalLink() {
-            const input = document.getElementById('personalUrlInput');
-            input.select();
-            document.execCommand('copy');
-            showToast("Link in Zwischenablage kopiert!");
-        }
-
-        function switchActiveUser(userId) {
-            activeUserId = userId;
-            if (userId) {
-                setPersonalUrl(userId);
-            } else {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('user');
-                window.history.replaceState({}, '', url);
-                document.getElementById('personalLinkBanner').classList.add('hidden');
-            }
-            updateUserHeader();
-            renderTimeline();
-        }
-
-        // --- USER CREATION & MANAGEMENT ---
-        function openNewUserModal() {
-            document.getElementById('newUserModal').classList.remove('hidden');
-            document.getElementById('userNameInput').focus();
-        }
-
-        function closeNewUserModal() {
-            document.getElementById('newUserModal').classList.add('hidden');
-            document.getElementById('userNameInput').value = '';
-        }
-
-        function handleCreateUser(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('userNameInput');
-            const name = nameInput.value.trim();
-
-            if (!name) return;
-
-            const newUserId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
-            const newUser = {
-                id: newUserId,
-                name: name,
-                statusMap: {}
-            };
-
-            appData.users.push(newUser);
-            saveData();
-
-            closeNewUserModal();
-            switchActiveUser(newUserId);
-            showToast(`${name} erfolgreich angelegt!`);
-        }
-
-        // --- RENDER LOGIC ---
-
-        function renderMonthButtons() {
-            const container = document.getElementById('monthButtons');
-            container.innerHTML = '';
-
-            // All months button
-            const allBtn = document.createElement('button');
-            allBtn.className = `px-2.5 py-1 text-xs rounded-lg font-medium transition ${selectedMonth === 0 ? 'bg-kayak-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`;
-            allBtn.innerText = 'Alle';
-            allBtn.onclick = () => filterMonth(0);
-            container.appendChild(allBtn);
-
-            // 12 months
-            MONTH_NAMES.forEach((name, idx) => {
-                const monthNum = idx + 1;
-                const btn = document.createElement('button');
-                btn.className = `px-2.5 py-1 text-xs rounded-lg font-medium transition ${selectedMonth === monthNum ? 'bg-kayak-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`;
-                btn.innerText = name.substring(0, 3);
-                btn.title = name;
-                btn.onclick = () => filterMonth(monthNum);
-                container.appendChild(btn);
-            });
-        }
-
-        function filterMonth(monthNum) {
-            selectedMonth = monthNum;
-            renderMonthButtons();
-            renderTimeline();
-        }
-
-        function renderTimeline() {
-            const filteredDays = selectedMonth === 0 
-                ? allDays2027 
-                : allDays2027.filter(d => d.month === selectedMonth);
-
-            const monthHeader = document.getElementById('timelineMonthHeader');
-            const dayHeader = document.getElementById('timelineDayHeader');
-            const body = document.getElementById('timelineBody');
-            const summaryRow = document.getElementById('timelineSummaryRow');
-            const emptyState = document.getElementById('emptyState');
-
-            monthHeader.innerHTML = '<th class="p-3 w-48 min-w-[12rem] bg-slate-100 sticky left-0 z-20 border-r border-slate-200">Monat</th>';
-            dayHeader.innerHTML = '<th class="p-3 w-48 min-w-[12rem] bg-slate-50 sticky left-0 z-20 border-r border-slate-200 text-slate-700">Paddler / Datum</th>';
-            body.innerHTML = '';
-            summaryRow.innerHTML = '<td class="p-3 w-48 min-w-[12rem] bg-slate-100 sticky left-0 z-20 border-r border-slate-200 text-slate-700 font-bold">Crew Verfügbar (✓)</td>';
-
-            if (appData.users.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            // Build Month Header Groups
-            let currentMonth = -1;
-            let monthSpan = 0;
-            let lastMonthTh = null;
-
-            filteredDays.forEach((day, index) => {
-                if (day.month !== currentMonth) {
-                    if (lastMonthTh) lastMonthTh.colSpan = monthSpan;
-                    currentMonth = day.month;
-                    monthSpan = 1;
-                    
-                    lastMonthTh = document.createElement('th');
-                    lastMonthTh.className = 'py-2 px-1 text-center border-r border-slate-200 bg-slate-200/60 text-slate-700 font-bold text-xs';
-                    lastMonthTh.innerText = MONTH_NAMES[currentMonth - 1];
-                    monthHeader.appendChild(lastMonthTh);
-                } else {
-                    monthSpan++;
-                }
-
-                if (index === filteredDays.length - 1 && lastMonthTh) {
-                    lastMonthTh.colSpan = monthSpan;
-                }
-
-                // Day Header Cell
-                const th = document.createElement('th');
-                const isWknd = day.isWeekend;
-                th.className = `p-1 text-center min-w-[2.2rem] border-r border-slate-200/60 ${isWknd ? 'bg-amber-50/80 text-amber-900 font-bold' : ''}`;
-                th.innerHTML = `
-                    <div class="text-[9px] uppercase tracking-wider text-slate-400">${DAY_NAMES[day.dayOfWeek]}</div>
-                    <div class="text-xs">${day.dayOfMonth}</div>
-                `;
-                dayHeader.appendChild(th);
-            });
-
-            // Build User Rows
-            appData.users.forEach(user => {
-                const tr = document.createElement('tr');
-                const isActive = user.id === activeUserId;
-
-                if (isActive) {
-                    tr.className = 'bg-sky-50/50 hover:bg-sky-50 transition';
-                } else {
-                    tr.className = 'hover:bg-slate-50 transition';
-                }
-
-                // User Name Cell (Fixed left column)
-                const nameTd = document.createElement('td');
-                nameTd.className = `p-3 w-48 min-w-[12rem] bg-white sticky left-0 z-10 border-r border-slate-200 font-medium ${isActive ? 'bg-sky-50/90 text-kayak-800' : 'text-slate-700'}`;
-                
-                nameTd.innerHTML = `
-                    <div class="flex items-center justify-between group">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <span class="w-7 h-7 rounded-full ${isActive ? 'bg-kayak-600 text-white' : 'bg-slate-200 text-slate-600'} text-xs flex items-center justify-center font-bold shrink-0">
-                                ${user.name.charAt(0).toUpperCase()}
-                            </span>
-                            <span class="truncate text-xs sm:text-sm" title="${user.name}">${user.name}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            ${isActive ? '<span class="text-[10px] bg-kayak-100 text-kayak-700 font-bold px-1.5 py-0.5 rounded">Du</span>' : ''}
-                            <button onclick="removeUser('${user.id}')" class="text-slate-300 hover:text-rose-600 p-1 rounded opacity-0 group-hover:opacity-100 transition" title="Person löschen">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                tr.appendChild(nameTd);
-
-                // Day Status Cells
-                filteredDays.forEach(day => {
-                    const td = document.createElement('td');
-                    const status = user.statusMap[day.iso] || STATUS.NONE;
-                    const isWknd = day.isWeekend;
-
-                    td.className = `p-1 text-center border-r border-slate-100 select-none ${isWknd ? 'bg-amber-50/30' : ''}`;
-                    
-                    // Render Status Indicator Badge
-                    const statusBtn = document.createElement('button');
-                    statusBtn.className = getStatusButtonClass(status, isActive);
-                    statusBtn.innerHTML = getStatusIconHtml(status);
-
-                    if (isActive) {
-                        statusBtn.onclick = () => toggleDayStatus(user.id, day.iso);
-                    } else {
-                        statusBtn.title = `${user.name}: ${getStatusLabel(status)}`;
-                    }
-
-                    td.appendChild(statusBtn);
-                    tr.appendChild(td);
-                });
-
-                body.appendChild(tr);
-            });
-
-            // Build Summary Row
-            filteredDays.forEach(day => {
-                let yesCount = 0;
-                let maybeCount = 0;
-
-                appData.users.forEach(u => {
-                    const st = u.statusMap[day.iso] || STATUS.NONE;
-                    if (st === STATUS.YES) yesCount++;
-                    if (st === STATUS.MAYBE) maybeCount++;
-                });
-
-                const td = document.createElement('td');
-                const isWknd = day.isWeekend;
-                const totalUsers = appData.users.length;
-                const isHighMatch = totalUsers > 0 && yesCount >= Math.ceil(totalUsers * 0.6);
-
-                td.className = `p-1 text-center border-r border-slate-200/60 ${isWknd ? 'bg-amber-100/40' : ''} ${isHighMatch ? 'bg-emerald-100/60 font-bold text-emerald-800' : 'text-slate-600'}`;
-                
-                if (yesCount > 0 || maybeCount > 0) {
-                    td.innerHTML = `
-                        <div class="text-xs ${isHighMatch ? 'text-emerald-700 font-bold' : ''}">${yesCount}</div>
-                        ${maybeCount > 0 ? `<div class="text-[9px] text-amber-600">(+${maybeCount})</div>` : ''}
-                    `;
-                } else {
-                    td.innerHTML = `<span class="text-slate-300">-</span>`;
-                }
-
-                summaryRow.appendChild(td);
-            });
-
-            lucide.createIcons();
-        }
-
-        function getStatusButtonClass(status, isEditable) {
-            let base = "w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center mx-auto shadow-sm ";
-            if (isEditable) base += "cursor-pointer transform active:scale-95 hover:brightness-95 ";
-            else base += "cursor-default ";
-
-            switch(status) {
-                case STATUS.YES:
-                    return base + "bg-emerald-500 text-white shadow-emerald-200";
-                case STATUS.MAYBE:
-                    return base + "bg-amber-400 text-white shadow-amber-200";
-                case STATUS.NO:
-                    return base + "bg-rose-500 text-white shadow-rose-200";
-                default:
-                    return base + (isEditable ? "bg-slate-100 text-slate-300 hover:bg-slate-200" : "bg-slate-50 text-slate-200");
-            }
-        }
-
-        function getStatusIconHtml(status) {
-            switch(status) {
-                case STATUS.YES:
-                    return '✓';
-                case STATUS.MAYBE:
-                    return '○';
-                case STATUS.NO:
-                    return '✕';
-                default:
-                    return '';
-            }
-        }
-
-        function getStatusLabel(status) {
-            switch(status) {
-                case STATUS.YES: return "Zeit (Ja)";
-                case STATUS.MAYBE: return "Vielleicht";
-                case STATUS.NO: return "Keine Zeit";
-                default: return "Keine Angabe";
-            }
-        }
-
-        // --- INTERACTION LOGIC ---
-
-        function toggleDayStatus(userId, isoDate) {
-            const user = appData.users.find(u => u.id === userId);
-            if (!user) return;
-
-            const current = user.statusMap[isoDate] || STATUS.NONE;
-            let next = STATUS.YES;
-
-            if (current === STATUS.NONE) next = STATUS.YES;
-            else if (current === STATUS.YES) next = STATUS.MAYBE;
-            else if (current === STATUS.MAYBE) next = STATUS.NO;
-            else if (current === STATUS.NO) next = STATUS.NONE;
-
-            if (next === STATUS.NONE) {
-                delete user.statusMap[isoDate];
-            } else {
-                user.statusMap[isoDate] = next;
-            }
-
-            saveData();
-            renderTimeline();
-        }
-
-        function updateUserHeader() {
-            const headerStatus = document.getElementById('userHeaderStatus');
-            headerStatus.innerHTML = '';
-
-            if (activeUserId) {
-                const activeUser = appData.users.find(u => u.id === activeUserId);
-                if (activeUser) {
-                    headerStatus.innerHTML = `
-                        <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm border border-white/20">
-                            <span class="text-xs text-cyan-100">Du bearbeitest als:</span>
-                            <span class="text-xs font-bold text-white">${activeUser.name}</span>
-                        </div>
-                        <button onclick="switchActiveUser(null)" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-xl transition">
-                            Wechseln
-                        </button>
-                    `;
-                    return;
-                }
-            }
-
-            // Select user dropdown
-            if (appData.users.length > 0) {
-                let optionsHtml = '<option value="" disabled selected>Als wen eintragen?</option>';
-                appData.users.forEach(u => {
-                    optionsHtml += `<option value="${u.id}">${u.name}</option>`;
-                });
-
-                headerStatus.innerHTML = `
-                    <select onchange="switchActiveUser(this.value)" class="bg-white/10 text-white text-xs rounded-xl px-3 py-2 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer">
-                        ${optionsHtml}
-                    </select>
-                `;
-            }
-        }
-
-        function removeUser(userId) {
-            const user = appData.users.find(u => u.id === userId);
-            if (!user) return;
-
-            if (confirm(`Möchtest du "${user.name}" wirklich aus dem Planer entfernen?`)) {
-                appData.users = appData.users.filter(u => u.id !== userId);
-                if (activeUserId === userId) {
-                    activeUserId = null;
-                    document.getElementById('personalLinkBanner').classList.add('hidden');
-                }
-                saveData();
-                updateUserHeader();
-                renderTimeline();
-                showToast("Person gelöscht.");
-            }
-        }
-
-        // --- IMPORT / EXPORT LOGIC ---
-
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `kajak_planer_2027_backup.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("Daten als JSON exportiert!");
-        }
-
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'application/json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = event => {
-                    try {
-                        const imported = JSON.parse(event.target.result);
-                        if (imported && Array.isArray(imported.users)) {
-                            appData = imported;
-                            saveData();
-                            renderTimeline();
-                            updateUserHeader();
-                            showToast("Daten erfolgreich importiert!");
-                        } else {
-                            alert("Ungültiges Dateiformat.");
-                        }
-                    } catch (err) {
-                        alert("Fehler beim Lesen der Datei.");
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-
-        // --- TOAST NOTIFICATION ---
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.innerText = message;
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
+      };
+      input.click();
+    }
+
+    // Init App
+    document.getElementById('setUserBtn').onclick = () => {
+      const name = document.getElementById('usernameInput').value;
+      setCurrentUser(name);
+    };
+
+    loadStorage();
+    handleUrlUser();
+    renderFilters();
+    renderTable();
+  </script>
 </body>
 </html>
