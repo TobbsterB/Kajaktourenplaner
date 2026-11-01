@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kajak-Tourenplaner 2027</title>
+<style>
+:root{
+  --bg:#eef4f6;--card:#fff;--primary:#0284c7;--primary-h:#0369a1;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
+  --yes:#16a34a;--yes-bg:#dcfce7;--maybe:#ca8a04;--maybe-bg:#fef9c3;--no:#dc2626;--no-bg:#fee2e2;
+  --weekend:#f1f5f9;--holiday:#ecfdf5;--holiday-t:#166534;--shadow:0 4px 16px rgba(15,60,90,.08);
+  --w1:#065f6e;--w2:#34d6b4;--rock:#26413f;--best:#0ea5e9;--link-bg:#eff6ff;--link-t:#1d4ed8;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1620;--card:#13232f;--text:#e2edf3;--muted:#8aa3b3;--border:#23394a;--weekend:#172a38;--holiday:#10301f;--holiday-t:#86efac;
+  --yes-bg:#14532d;--yes:#86efac;--maybe-bg:#713f12;--maybe:#fde047;--no-bg:#7f1d1d;--no:#fca5a5;
+  --w1:#04303a;--w2:#12806f;--rock:#0a1a1a;--link-bg:#12263a;--link-t:#93c5fd;--shadow:0 4px 16px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{
+  --bg:#0b1620;--card:#13232f;--text:#e2edf3;--muted:#8aa3b3;--border:#23394a;--weekend:#172a38;--holiday:#10301f;--holiday-t:#86efac;
+  --yes-bg:#14532d;--yes:#86efac;--maybe-bg:#713f12;--maybe:#fde047;--no-bg:#7f1d1d;--no:#fca5a5;
+  --w1:#04303a;--w2:#12806f;--rock:#0a1a1a;--link-bg:#12263a;--link-t:#93c5fd;--shadow:0 4px 16px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif}
+html,body{background:var(--bg)}
+body{color:var(--text);padding:16px}
+.container{max-width:1400px;margin:0 auto}
+.hero{position:relative;height:220px;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px;color:#fff;background:var(--w1)}
+#river{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-text{position:relative;padding:26px 28px;text-shadow:0 2px 10px rgba(0,30,50,.55);max-width:640px}
+.hero h1{font-size:clamp(1.5rem,4.5vw,2.4rem);letter-spacing:-.02em;margin-bottom:6px}
+.hero p{opacity:.95;font-size:.95rem}
+.mood{display:inline-block;margin-top:10px;font-size:.8rem;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);padding:4px 12px;border-radius:20px;text-shadow:none}
+.pool{position:absolute;right:16px;bottom:16px;background:rgba(255,255,255,.92);color:#0c4a6e;border:none;border-radius:14px;padding:10px 14px;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,30,50,.3);text-align:left;line-height:1.35;max-width:min(260px,70%)}
+.pool:hover{background:#fff;transform:translateY(-1px)}
+.pool small{display:block;font-weight:500;color:#475569}
+.pool[hidden]{display:none}
+.chip{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.4);border-radius:16px;padding:8px 14px;color:#fff;text-align:left;cursor:pointer;box-shadow:0 4px 14px rgba(0,30,40,.25)}
+.chip:hover{background:rgba(255,255,255,.28)}
+.chip b{font-size:2.1rem;line-height:1;text-shadow:0 2px 8px rgba(0,30,40,.5)}
+.chip span{font-size:.75rem;line-height:1.3}
+.user-section{background:var(--card);padding:16px 20px;border-radius:16px;box-shadow:var(--shadow);margin-bottom:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.user-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text]{padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:1rem;outline:none;background:var(--bg);color:var(--text)}
+input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(2,132,199,.2)}
+button{padding:10px 18px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s,transform .1s}
+button:hover{background:var(--primary-h)}
+.link-box{background:var(--link-bg);border:1px dashed #93c5fd;padding:8px 12px;border-radius:10px;font-size:.85rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--text)}
+.link-box input{background:transparent;border:none;color:var(--link-t);font-weight:700;width:220px;cursor:pointer;outline:none}
+.month-filter{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:6px}
+.month-btn{padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.month-btn:hover{background:var(--card);border-color:var(--primary);color:var(--primary)}
+.month-btn.active{background:linear-gradient(135deg,var(--primary),#06b6d4);color:#fff;border-color:transparent}
+.timeline-container{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:800px}
+th,td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;padding:6px 3px;min-width:44px;background:var(--card)}
+th.user-col,td.user-col{position:sticky;left:0;z-index:2;min-width:140px;text-align:left;padding-left:12px;font-weight:700;box-shadow:2px 0 6px rgba(0,0,0,.06)}
+th.date-header{font-size:.75rem;font-weight:400;color:var(--muted)}
+th.date-header .day-name{font-weight:700;display:block;color:var(--text)}
+th.date-header .holiday-name{font-size:.62rem;color:var(--holiday-t);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42px}
+th.weekend,td.weekend{background:var(--weekend)}
+th.holiday,td.holiday{background:var(--holiday)}
+th.best{background:linear-gradient(var(--best),var(--best)) top/100% 3px no-repeat,var(--card)}
+.cell-btn{width:32px;height:32px;border-radius:50%;border:2px solid transparent;background:transparent;color:inherit;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:1rem}
+.cell-btn:hover{background:var(--border);border-color:var(--primary)}
+.cell-btn:active{transform:scale(.88)}
+.cell-btn.status-yes{background:var(--yes-bg);color:var(--yes);font-weight:700}
+.cell-btn.status-maybe{background:var(--maybe-bg);color:var(--maybe);font-weight:700}
+.cell-btn.status-no{background:var(--no-bg);color:var(--no);font-weight:700}
+.cell-btn.pop{animation:pop .25s}
+@keyframes pop{50%{transform:scale(1.25)}}
+tr.summary-row td{font-weight:700}
+.count-badge{font-size:.85rem;padding:2px 7px;border-radius:10px}
+.count-high{background:var(--yes-bg);color:var(--yes)}
+.data-actions{margin-top:16px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.btn-secondary{background:#64748b}.btn-secondary:hover{background:#475569}
+@media (max-width:600px){body{padding:10px}.hero{height:200px}.hero-text{padding:18px 128px 18px 18px}.chip{padding:6px 10px;gap:7px;top:10px;right:10px}.chip b{font-size:1.5rem}.chip span{font-size:.62rem}.hero p{font-size:.85rem}.link-box input{width:150px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="hero">
+    <canvas id="river" aria-hidden="true"></canvas>
+    <div class="hero-text">
+      <h1>🛶 Kajak-Tourenplaner 2027</h1>
+      <p>Plane gemeinsame Paddeltage für das Jahr 2027 (inkl. Feiertage Bayern)</p>
+      <span class="mood" id="mood">Noch keine Paddler am Start</span>
+    </div>
+    <button class="chip" id="chip" title="Tage, an denen alle Teilnehmer Ja gesagt haben"></button>
+    <button class="pool" id="pool" hidden></button>
+  </header>
+
+  <div class="user-section">
+    <div class="user-controls">
+      <input type="text" id="usernameInput" placeholder="Dein Name..." />
+      <button id="setUserBtn">Als Nutzer eintragen / wechseln</button>
+    </div>
+    <div class="link-box" id="linkBox" style="display:none">
+      <span>Dein Bearbeitungs-Link:</span>
+      <input type="text" id="userLink" readonly onclick="this.select()" />
+      <button onclick="copyLink()">Kopieren</button>
+    </div>
+  </div>
+
+  <div class="month-filter" id="monthFilter"></div>
+
+  <div class="timeline-container">
+    <table id="plannerTable">
+      <thead><tr id="headerRow"><th class="user-col">Name</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+      <tfoot><tr id="summaryRow" class="summary-row"><td class="user-col">Gesamt (Ja)</td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="data-actions">
+    <button class="btn-secondary" onclick="exportData()">Daten exportieren (JSON)</button>
+    <button class="btn-secondary" onclick="importData()">Daten importieren</button>
+  </div>
+</div>
+
+<script>
+const HOLIDAYS_BAYERN_2027={"2027-01-01":"Neujahr","2027-01-06":"Hl. 3 Könige","2027-03-26":"Karfreitag","2027-03-29":"Ostermontag","2027-05-01":"Tag der Arbeit","2027-05-06":"Chr. Himmelfahrt","2027-05-17":"Pfingstmontag","2027-05-27":"Fronleichnam","2027-08-15":"Mariä Himmelfahrt","2027-10-03":"Tag d. Dt. Einheit","2027-11-01":"Allerheiligen","2027-12-25":"1. Weihnachtstag","2027-12-26":"2. Weihnachtstag"};
+const MONTH_NAMES=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const DAYS_SHORT=["So","Mo","Di","Mi","Do","Fr","Sa"];
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let state={users:{},currentUserId:null,selectedMonth:0};
+
+const days2027=[];
+for(let d=new Date(2027,0,1);d<=new Date(2027,11,31);d.setDate(d.getDate()+1)){
+  const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const w=d.getDay();
+  days2027.push({dateStr:ds,dayNum:d.getDate(),monthIndex:d.getMonth(),dayShort:DAYS_SHORT[w],isWeekend:w===0||w===6,holidayName:HOLIDAYS_BAYERN_2027[ds]||null});
+}
+
+function loadStorage(){const s=store.get('kajak_planner_2027');if(s){try{state.users=JSON.parse(s)||{}}catch(e){console.error(e)}}}
+function saveStorage(){store.set('kajak_planner_2027',JSON.stringify(state.users));renderTable()}
+
+function handleUrlUser(){
+  const p=new URLSearchParams(window.location.search).get('user')||store.get('kajak_current_2027');
+  if(p){
+    if(!state.users[p]){state.users[p]={name:"Paddler "+p.slice(-4),availability:{}};saveStorage()}
+    state.currentUserId=p;
+    document.getElementById('usernameInput').value=state.users[p].name;
+    updateLinkBox();
+  }
+}
+function setCurrentUser(name){
+  name=name.trim();if(!name)return;
+  const found=Object.keys(state.users).find(k=>state.users[k].name.toLowerCase()===name.toLowerCase());
+  const id=found||'user_'+Math.random().toString(36).substr(2,9);
+  if(!found)state.users[id]={name,availability:{}};
+  state.currentUserId=id;
+  store.set('kajak_current_2027',id);
+  try{const u=new URL(window.location.href);u.searchParams.set('user',id);window.history.pushState({},'',u)}catch(e){}
+  saveStorage();updateLinkBox();
+}
+function updateLinkBox(){
+  if(state.currentUserId){
+    document.getElementById('linkBox').style.display='flex';
+    document.getElementById('userLink').value=window.location.href;
+  }
+}
+function copyLink(){
+  const i=document.getElementById('userLink');i.select();
+  try{navigator.clipboard.writeText(i.value)}catch(e){}
+  alert("Bearbeitungs-Link kopiert!");
+}
+function toggleStatus(userId,dateStr){
+  if(userId!==state.currentUserId){alert("Du kannst nur deine eigenen Zeiten ändern. Bitte nutze deinen eigenen Bearbeitungs-Link oder trage dich oben als Nutzer ein.");return}
+  const c=state.users[userId].availability[dateStr];
+  const n=!c?'yes':c==='yes'?'maybe':c==='maybe'?'no':null;
+  if(n)state.users[userId].availability[dateStr]=n;else delete state.users[userId].availability[dateStr];
+  state.popKey=userId+dateStr;
+  saveStorage();
+}
+function renderFilters(){
+  const c=document.getElementById('monthFilter');c.innerHTML='';
+  const mk=(label,val)=>{const b=document.createElement('button');b.className='month-btn'+(state.selectedMonth===val?' active':'');b.textContent=label;b.onclick=()=>{state.selectedMonth=val;renderFilters();renderTable()};c.appendChild(b)};
+  mk('Alle Monate','ALL');MONTH_NAMES.forEach((m,i)=>mk(m,i));
+}
+
+/* Statistik: bester Tag (meiste Ja, Tie-Break: Vielleicht) */
+function stats(){
+  const ids=Object.keys(state.users),n=ids.length,common=[];let best=null;
+  days2027.forEach(d=>{
+    let y=0,m=0;ids.forEach(id=>{const s=state.users[id].availability[d.dateStr];if(s==='yes')y++;else if(s==='maybe')m++});
+    d.yes=y;if(n>1&&y===n)common.push(d);
+    if(y>0&&(!best||y>best.y||(y===best.y&&m>best.m)))best={day:d,y,m};
+  });
+  return{n,best,common};
+}
+
+function renderTable(){
+  const headerRow=document.getElementById('headerRow'),tbody=document.getElementById('tableBody'),sumRow=document.getElementById('summaryRow');
+  headerRow.innerHTML='<th class="user-col">Name</th>';sumRow.innerHTML='<td class="user-col">Gesamt (Ja)</td>';tbody.innerHTML='';
+  const st=stats();
+  const vis=days2027.filter(d=>state.selectedMonth==='ALL'||d.monthIndex===state.selectedMonth);
+  vis.forEach(day=>{
+    const th=document.createElement('th');th.className='date-header';
+    if(day.isWeekend)th.classList.add('weekend');if(day.holidayName)th.classList.add('holiday');
+    if(st.best&&st.best.day.dateStr===day.dateStr)th.classList.add('best');
+    let c=`<span class="day-name">${day.dayShort}</span>${day.dayNum}.${day.monthIndex+1}.`;
+    if(day.holidayName)c+=`<span class="holiday-name" title="${day.holidayName}">${day.holidayName}</span>`;
+    th.innerHTML=c;headerRow.appendChild(th);
+  });
+  Object.keys(state.users).forEach(id=>{
+    const u=state.users[id],tr=document.createElement('tr'),nt=document.createElement('td');
+    nt.className='user-col';nt.textContent=u.name+(id===state.currentUserId?' (Du)':'');tr.appendChild(nt);
+    vis.forEach(day=>{
+      const td=document.createElement('td');
+      if(day.isWeekend)td.classList.add('weekend');if(day.holidayName)td.classList.add('holiday');
+      const s=u.availability[day.dateStr],b=document.createElement('button');b.className='cell-btn';
+      if(s==='yes'){b.classList.add('status-yes');b.textContent='✓'}
+      else if(s==='maybe'){b.classList.add('status-maybe');b.textContent='○'}
+      else if(s==='no'){b.classList.add('status-no');b.textContent='✕'}
+      if(state.popKey===id+day.dateStr){b.classList.add('pop');state.popKey=null}
+      b.onclick=()=>toggleStatus(id,day.dateStr);td.appendChild(b);tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  vis.forEach(day=>{
+    const td=document.createElement('td');
+    if(day.isWeekend)td.classList.add('weekend');if(day.holidayName)td.classList.add('holiday');
+    if(day.yes>0){
+      td.innerHTML=`<span class="count-badge ${day.yes>=2?'count-high':''}">${day.yes}</span>`;
+      td.style.backgroundImage=`linear-gradient(rgba(14,165,233,${(.08+.3*day.yes/st.n).toFixed(2)}),rgba(14,165,233,${(.08+.3*day.yes/st.n).toFixed(2)}))`;
+    }
+    sumRow.appendChild(td);
+  });
+  updateHero(st);
+}
+
+/* Hero: Stimmung + Becken-Button */
+let turbTarget=.55,boats=[];
+function updateHero(st){
+  const{n,best,common}=st;
+  boats=Object.keys(state.users).map(id=>state.users[id].name);
+  turbTarget=n===0?.55:best?Math.max(0,Math.min(1,1-best.y/n)):.7;
+  const mood=document.getElementById('mood'),pool=document.getElementById('pool');
+  mood.textContent=n===0?'Noch keine Paddler am Start':turbTarget<.2?'Ruhiges Wasser – ihr seid euch einig':turbTarget<.6?'Leichte Strömung – es wird':'Wildwasser – noch viele offene Termine';
+  if(best){
+    const d=best.day;
+    pool.hidden=false;
+    pool.innerHTML=`🏝️ Ruhiges Becken<small>${d.dayShort}, ${d.dayNum}.${d.monthIndex+1}.2027 · ${best.y} von ${n} sagen Ja</small>`;
+    pool.onclick=()=>{state.selectedMonth=d.monthIndex;renderFilters();renderTable()};
+  }else pool.hidden=true;
+  const chip=document.getElementById('chip'),wk=common.filter(d=>d.isWeekend).length;
+  chip.innerHTML=n<2?`<b>–</b><span>gemeinsame Termine<br>ab 2 Paddlern</span>`:`<b>${common.length}</b><span>${common.length===1?'gemeinsamer Termin':'gemeinsame Termine'}<br>aller ${n} Paddler${common.length?` · ${wk} am WE`:''}</span>`;
+  chip.onclick=()=>{if(common.length){state.selectedMonth=common[0].monthIndex;renderFilters();renderTable()}};
+}
+
+/* Wildwasser-Animation */
+const cv=document.getElementById('river'),cx=cv.getContext('2d');
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=0,H=0,t=0,turb=.55,last=0,frame=0,c1='#0b5f8a',c2='#2fb1c9',cr='#1b3a4b';
+const rocks=[[.10,.60,15],[.22,.40,13],[.30,.74,18],[.42,.52,15],[.50,.30,12],[.56,.78,14],[.64,.60,16],[.16,.80,10],[.37,.34,11],[.47,.68,10],[.60,.42,11],[.26,.56,9]];
+const PAL=['#f97316','#facc15','#ef4444','#a855f7','#22c55e','#ec4899','#f8fafc','#38bdf8'];
+function resize(){const r=cv.parentElement.getBoundingClientRect(),d=window.devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+const calm=x=>{const k=Math.max(0,Math.min(1,(x/W-.7)/.22));return k*k*(3-2*k)};
+const spray=[],streaks=[],trees=[];
+for(let i=0;i<46;i++)streaks.push({x:Math.random(),y:.2+Math.random()*.7,l:30+Math.random()*70,s:.6+Math.random()*.9,p:Math.random()*9});
+for(let i=0;i<110;i++)trees.push({x:Math.random(),y:Math.random()*8,r:8+Math.random()*8,c:i%3});
+function draw(dt){
+  if(!W)return;
+  if(frame++%30===0){const s=getComputedStyle(document.documentElement);c1=s.getPropertyValue('--w1').trim()||c1;c2=s.getPropertyValue('--w2').trim()||c2;cr=s.getPropertyValue('--rock').trim()||cr}
+  t+=dt;turb+=(turbTarget-turb)*Math.min(1,dt*1.5);
+  const sp=1.2*(1+turb*1.6),fl=40+turb*110;
+  const g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,c1);g.addColorStop(.55,c2);g.addColorStop(1,c1);
+  cx.globalAlpha=1;cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  /* Wellenbänder */
+  for(let l=0;l<4;l++){
+    cx.beginPath();cx.moveTo(0,H);
+    for(let x=0;x<=W;x+=8){
+      const a=(2+turb*13)*(1-.85*calm(x))*(1+l*.3);
+      cx.lineTo(x,H*(.3+l*.17)+Math.sin(x*.012*(1+l*.25)-t*sp*(1+l*.3))*a+Math.sin(x*.035+t*2.2+l)*a*.35);
+    }
+    cx.lineTo(W,H);cx.closePath();cx.fillStyle=l%2?c2:c1;cx.globalAlpha=.22;cx.fill();
+  }
+  /* Strömungslinien */
+  cx.lineCap='round';cx.strokeStyle='#fff';cx.lineWidth=1.2;
+  streaks.forEach(s=>{
+    const x=(s.x*W+t*fl*s.s)%(W+s.l)-s.l,k=1-.85*calm(x),y=s.y*H+Math.sin(x*.03+s.p+t*2)*(1+turb*4)*k;
+    cx.globalAlpha=(.1+.2*turb)*k;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x+s.l*k,y+Math.sin(x*.05+s.p)*1.5);cx.stroke();
+  });
+  /* stehende Wellen (Wellenzüge quer zum Fluss) */
+  cx.strokeStyle='#fff';
+  for(let w=0;w<5;w++){
+    const x0=W*(.16+.12*w),k=1-calm(x0);if(k<.05)continue;
+    cx.globalAlpha=(.12+.4*turb)*k;cx.lineWidth=2+turb*3;cx.beginPath();
+    for(let y=H*.28;y<=H*.84;y+=6){const px=x0+Math.sin(y*.05+w*2)*10+Math.sin(t*4+w+y*.02)*3*(.5+turb);y===H*.28?cx.moveTo(px,y):cx.lineTo(px,y)}
+    cx.stroke();
+  }
+  /* Felsen, Walzen, Schaumschweife, Gischt */
+  const nr=Math.round(6+turb*6);
+  for(let i=0;i<nr;i++){
+    const[rx,ry,r0]=rocks[i],x=rx*W,y=ry*H,rr=r0*Math.min(1,.6+W/1200);
+    /* Kehrwasser: Gegenstrom-Wirbel hinter dem Fels, Wirbelrichtung je nach Seite */
+    if(rr>=9){const sd=i%2?1:-1,ER=rr*1.35,ex=x+rr*2.2,ey=y+sd*rr*1.1,ek=1-calm(ex);
+      if(ek>.1){cx.globalAlpha=.16*ek;cx.fillStyle=c1;cx.beginPath();cx.ellipse(ex,ey,ER,ER*.8,0,0,7);cx.fill();
+        cx.strokeStyle='#fff';cx.lineWidth=1.3;
+        for(let s=0;s<3;s++){cx.globalAlpha=(.15+.2*turb)*ek;cx.beginPath();for(let u=0;u<=1.01;u+=.07){const an=sd*t*1.1+s*2.09+u*5,rd=ER*(.25+.7*u),px=ex+Math.cos(an)*rd,py=ey+Math.sin(an)*rd*.8;u?cx.lineTo(px,py):cx.moveTo(px,py)}cx.stroke()}
+        cx.fillStyle='#fff';for(let j=0;j<7;j++){const an=sd*t*(.9+turb*.8)+j*.9,rd=ER*(.35+.55*((j*37)%10)/10);cx.globalAlpha=.55*ek;cx.beginPath();cx.arc(ex+Math.cos(an)*rd,ey+Math.sin(an)*rd*.8,1.5,0,7);cx.fill()}
+        cx.lineWidth=2;cx.globalAlpha=(.25+.4*turb)*ek;cx.beginPath();cx.ellipse(ex,ey,ER,ER*.8,0,sd>0?.1:Math.PI+.1,sd>0?Math.PI-.1:Math.PI*2-.1);cx.stroke()}}
+    cx.fillStyle='#fff';
+    for(let j=0;j<26;j++){const tx=x+rr+j*9,a=(1-j/26)*(.25+.55*turb)*(1-calm(tx));if(a<=0)continue;cx.globalAlpha=a;cx.beginPath();cx.arc(tx,y+Math.sin(t*4+j*.6+i)*(1+j*.3)*(.5+turb),rr*.35*(1-j/40)+1.5,0,7);cx.fill()}
+    cx.strokeStyle='#fff';cx.lineWidth=2;
+    for(let k=1;k<4;k++){cx.globalAlpha=Math.max(0,(.55-.12*k)*(.3+turb));cx.beginPath();cx.ellipse(x+rr*2.5+k*24,y,4+Math.sin(t*5+k+i),rr*(1.5-.15*k),0,-1.3,1.3);cx.stroke()}
+    cx.globalAlpha=.75;cx.lineWidth=3;cx.beginPath();cx.ellipse(x-rr*.6,y,rr*.35,rr*.85,0,-1.4,1.4);cx.stroke();
+    cx.globalAlpha=1;cx.fillStyle=cr;cx.beginPath();cx.ellipse(x,y,rr,rr*.62,0,0,7);cx.fill();
+    cx.globalAlpha=.25;cx.fillStyle='#fff';cx.beginPath();cx.ellipse(x-rr*.25,y-rr*.2,rr*.5,rr*.2,0,0,7);cx.fill();
+    if(Math.random()<dt*(5+turb*22)&&spray.length<220)spray.push({x:x+rr*.2,y:y-rr*.4,vx:15+Math.random()*50,vy:-(30+Math.random()*70),a:0,life:.6+Math.random()*.6});
+  }
+  cx.fillStyle='#fff';
+  for(let i=spray.length-1;i>=0;i--){const p=spray[i];p.a+=dt;p.vy+=160*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.a>p.life){spray.splice(i,1);continue}cx.globalAlpha=1-p.a/p.life;cx.beginPath();cx.arc(p.x,p.y,1.3,0,7);cx.fill()}
+  /* Schaum */
+  cx.fillStyle='#fff';
+  const nf=Math.round(14+turb*90);
+  for(let i=0;i<nf;i++){
+    const x=(i*97.3+t*(30+turb*90)*(1+(i%3)*.3))%W,y=H*(.28+((i*37)%62)/100)+Math.sin(t*3+i)*(2+turb*5);
+    cx.globalAlpha=.55*(1-calm(x))*(.4+turb*.6);cx.beginPath();cx.arc(x,y,1+(i%3)*.8,0,7);cx.fill();
+  }
+  /* Ringe im ruhigen Becken */
+  cx.strokeStyle='#fff';cx.lineWidth=1;
+  for(let r=0;r<2;r++){const q=(t*.35+r*.5)%1;cx.globalAlpha=(1-q)*.35;cx.beginPath();cx.ellipse(W*(.82+r*.07),H*(.6+r*.1),q*34,q*11,0,0,7);cx.stroke()}
+  /* Boote */
+  const n=boats.length;
+  boats.forEach((name,k)=>{
+    const span=W+80,x=((t*(32+turb*50)+k*span/Math.max(n,1))%span)-40;
+    /* Ausweichkurs: Boot weicht jedem Fels weich aus */
+    const by=xx=>{const a=(2+turb*13)*(1-.85*calm(xx)),y0=H*(.5+(k%3)*.14)+Math.sin(xx*.02-t*3)*a*1.2;let y=y0;
+      for(let i=0;i<nr;i++){const[rx,ry,r0]=rocks[i],rr=r0*Math.min(1,.6+W/1200),dx=Math.abs(xx-rx*W),rg=rr+46;if(dx>=rg)continue;
+        const c=rr*.62+10,d=y0-ry*H,push=c-Math.abs(d);if(push<=0)continue;const w=1-dx/rg;y+=(d<0?-1:1)*push*w*w*(3-2*w)}
+      return y};
+    const y=by(x),ang=Math.atan2(by(x+4)-by(x-4),8);
+    cx.fillStyle='#fff';for(let j=1;j<8;j++){cx.globalAlpha=.4*(1-j/8)*(.5+turb);cx.beginPath();cx.arc(x-12-j*6,y+Math.sin(j+t*6)*1.5,3.2-j*.25,0,7);cx.fill()}
+    cx.save();cx.translate(x,y);cx.rotate(ang);cx.globalAlpha=1;
+    cx.fillStyle=PAL[k%PAL.length];cx.beginPath();cx.ellipse(0,0,13,3.6,0,0,7);cx.fill();
+    cx.fillStyle='#0f172a';cx.beginPath();cx.arc(0,-2.5,3,0,7);cx.fill();
+    cx.strokeStyle='#e2e8f0';cx.lineWidth=1.5;cx.beginPath();const p=Math.sin(t*6+k)*5;cx.moveTo(-8,-4+p);cx.lineTo(8,3-p);cx.stroke();
+    cx.restore();
+    if(W>500){cx.globalAlpha=.9;cx.fillStyle='#fff';cx.font='600 10px sans-serif';cx.textAlign='center';cx.fillText(name,x,y-11)}
+  });
+  /* Ufer: Kiesbank unten, Wald (Aufsicht) oben */
+  cx.globalAlpha=1;const bt=H-14,sh=x=>bt+Math.sin(x*.05)*3+Math.sin(x*.13)*2;
+  cx.fillStyle='#c9d2c4';cx.beginPath();cx.moveTo(0,H);for(let x=0;x<=W;x+=10)cx.lineTo(x,sh(x));cx.lineTo(W,H);cx.fill();
+  cx.strokeStyle='#fff';cx.lineWidth=2;cx.globalAlpha=.3+.2*turb;cx.beginPath();
+  for(let x=0;x<=W;x+=10){const y=sh(x)-1+Math.sin(t*2+x*.04)*1.2;x?cx.lineTo(x,y):cx.moveTo(x,y)}cx.stroke();
+  cx.globalAlpha=1;cx.fillStyle='#0d3b2c';cx.fillRect(0,0,W,10);
+  trees.forEach(p=>{cx.fillStyle=['#0d3b2c','#14532d','#166534'][p.c];cx.beginPath();cx.arc(p.x*W,p.y+4,p.r,0,7);cx.fill()});
+  cx.globalAlpha=1;
+}
+function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;draw(reduce?0:dt);requestAnimationFrame(loop)}
+window.addEventListener('resize',resize);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{frame=0});
+
+document.getElementById('setUserBtn').onclick=()=>setCurrentUser(document.getElementById('usernameInput').value);
+loadStorage();handleUrlUser();renderFilters();renderTable();resize();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
